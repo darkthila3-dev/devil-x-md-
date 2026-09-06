@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Devil — Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:        #0b0908;
+    --panel:     #161011;
+    --panel-2:   #1d1516;
+    --oxblood:   #7a1220;
+    --ember:     #ff6b35;
+    --ember-dim: #b5451f;
+    --bone:      #ede6de;
+    --ash:       #8b8580;
+    --ash-dim:   #5a5551;
+    --line:      #2a2020;
+    --good:      #6fbf73;
+    --bad:       #ff6b35;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background:var(--bg);
+    color:var(--bone);
+    font-family:'Inter', sans-serif;
+  }
+
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:40px 20px 60px;
+  }
+
+  .top{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:28px;
+  }
+  .top-mark{ width:34px; height:34px; flex-shrink:0; }
+  .top h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:22px;
+    margin:0;
+  }
+  .top .badge{
+    margin-left:auto;
+    font-size:12px;
+    padding:5px 10px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    color:var(--ash);
+  }
+  .badge.online{ color:var(--good); border-color:rgba(111,191,115,0.35); }
+  .badge.offline{ color:var(--bad); border-color:rgba(255,107,53,0.35); }
+
+  .card{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:24px;
+    margin-bottom:18px;
+  }
+
+  .card h2{
+    font-family:'Fraunces', serif;
+    font-size:16px;
+    font-weight:600;
+    margin:0 0 16px;
+    color:var(--bone);
+  }
+
+  .status-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+    padding:9px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .status-row:last-child{ border-bottom:none; }
+  .status-row span:first-child{ color:var(--ash); }
+
+  label{ display:block; font-size:13px; color:var(--ash); margin:0 0 6px; }
+  .field{ margin-bottom:16px; }
+
+  input[type="text"], input[type="password"]{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:12px 13px;
+    color:var(--bone);
+    font-size:14.5px;
+    font-family:'Inter', sans-serif;
+    outline:none;
+    transition:border-color 0.2s ease;
+  }
+  input:focus{ border-color:var(--ember-dim); }
+
+  .btn{
+    background:var(--oxblood);
+    color:var(--bone);
+    border:none;
+    border-radius:9px;
+    padding:13px 18px;
+    font-size:14.5px;
+    font-weight:600;
+    font-family:'Inter', sans-serif;
+    cursor:pointer;
+    transition:background 0.2s ease, transform 0.15s ease;
+  }
+  .btn:hover{ background:#8f1626; }
+  .btn:active{ transform:scale(0.98); }
+  .btn:disabled{ background:var(--ash-dim); cursor:not-allowed; }
+  .btn.full{ width:100%; }
+
+  .msg{ font-size:13px; margin-top:12px; display:none; }
+  .msg.show{ display:block; }
+  .msg.success{ color:var(--good); }
+  .msg.error{ color:var(--bad); }
+
+  #loginView{ display:flex; align-items:center; justify-content:center; min-height:70vh; }
+  #loginCard{ width:100%; max-width:340px; }
+
+  #dashView{ display:none; }
+  #dashView.show{ display:block; }
+
+  a.back{ color:var(--ash-dim); font-size:13px; text-decoration:none; }
+  a.back:hover{ color:var(--ash); }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="wrap" id="loginView">
+  <div class="card" id="loginCard">
+    <h2>🔒 Devil Dashboard</h2>
+    <div class="field">
+      <label for="pwd">Dashboard password</label>
+      <input type="password" id="pwd" placeholder="••••••••">
+      <p style="font-size:12px; color:var(--ash-dim); margin-top:8px; line-height:1.5;">Check your WhatsApp for the "Connected" message — it has your password. Lost it? Send <b>.dashpass</b> to the bot from the owner number.</p>
+    </div>
+    <button class="btn full" onclick="login()">Log in</button>
+    <p class="msg error" id="loginError"></p>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="wrap" id="dashView">
+  <div class="top">
+    <svg class="top-mark" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 22C12 14 18 9 24 13C27 15 27 19 24 21" stroke="#ff6b35" stroke-width="3" stroke-linecap="round"/>
+      <path d="M52 22C52 14 46 9 40 13C37 15 37 19 40 21" stroke="#ff6b35" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="32" cy="36" r="16" fill="#7a1220"/>
+      <circle cx="26" cy="34" r="2.4" fill="#ede6de"/>
+      <circle cx="38" cy="34" r="2.4" fill="#ede6de"/>
+      <path d="M25 43C28 46 36 46 39 43" stroke="#ede6de" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <h1 id="dashTitle">Dashboard</h1>
+    <span class="badge" id="statusBadge">checking…</span>
+  </div>
+
+  <div class="card">
+    <h2>Session</h2>
+    <div class="status-row"><span>Number</span><span id="statNumber">—</span></div>
+    <div class="status-row"><span>Connected since</span><span id="statSince">—</span></div>
+    <p style="margin-top:14px;"><a class="back" href="/">← Back to pairing site</a></p>
+  </div>
+
+  <div class="card">
+    <h2>Bot settings</h2>
+    <div class="field">
+      <label for="botName">Bot name</label>
+      <input type="text" id="botName">
+    </div>
+    <div class="field">
+      <label for="footer">Footer text</label>
+      <input type="text" id="footer">
+    </div>
+    <div class="field">
+      <label for="prefix">Command prefix</label>
+      <input type="text" id="prefix" maxlength="3">
+    </div>
+    <div class="field">
+      <label for="ownerNumber">Owner number (country code, no +)</label>
+      <input type="text" id="ownerNumber" inputmode="numeric">
+    </div>
+    <button class="btn full" onclick="saveSettings()">Save changes</button>
+    <p class="msg" id="saveMsg"></p>
+  </div>
+</div>
+
+<script>
+  let token = null;
+
+  async function login(){
+    const pwd = document.getElementById('pwd').value;
+    const errEl = document.getElementById('loginError');
+    errEl.classList.remove('show');
+
+    try{
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      });
+      const data = await res.json();
+
+      if(!res.ok) throw new Error(data.error || 'Login failed.');
+
+      token = data.token;
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('dashView').classList.add('show');
+      loadDashboard();
+    }catch(err){
+      errEl.textContent = err.message;
+      errEl.classList.add('show');
+    }
+  }
+
+  async function loadDashboard(){
+    await loadStatus();
+    await loadSettingsForm();
+  }
+
+  async function loadStatus(){
+    const res = await fetch('/api/status');
+    const data = await res.json();
+
+    document.getElementById('dashTitle').textContent = `${data.botName} Dashboard`;
+
+    const badge = document.getElementById('statusBadge');
+    if(data.connected){
+      badge.textContent = 'Online';
+      badge.className = 'badge online';
+      document.getElementById('statNumber').textContent = data.number || '—';
+      document.getElementById('statSince').textContent = data.connectedSince
+        ? new Date(data.connectedSince).toLocaleString()
+        : '—';
+    } else {
+      badge.textContent = 'Not paired';
+      badge.className = 'badge offline';
+      document.getElementById('statNumber').textContent = '—';
+      document.getElementById('statSince').textContent = '—';
+    }
+  }
+
+  async function loadSettingsForm(){
+    const res = await fetch('/api/settings', {
+      headers: { 'x-dashboard-token': token }
+    });
+    const data = await res.json();
+
+    document.getElementById('botName').value = data.BOT_NAME || '';
+    document.getElementById('footer').value = data.FOOTER || '';
+    document.getElementById('prefix').value = data.PREFIX || '';
+    document.getElementById('ownerNumber').value = data.OWNER_NUMBER || '';
+  }
+
+  async function saveSettings(){
+    const msgEl = document.getElementById('saveMsg');
+    msgEl.classList.remove('show', 'success', 'error');
+
+    const payload = {
+      BOT_NAME: document.getElementById('botName').value.trim(),
+      FOOTER: document.getElementById('footer').value.trim(),
+      PREFIX: document.getElementById('prefix').value.trim(),
+      OWNER_NUMBER: document.getElementById('ownerNumber').value.trim(),
+    };
+
+    try{
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-dashboard-token': token },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if(!res.ok) throw new Error(data.error || 'Save failed.');
+
+      msgEl.textContent = '✅ Saved — takes effect immediately, no restart needed.';
+      msgEl.classList.add('show', 'success');
+      loadStatus();
+    }catch(err){
+      msgEl.textContent = err.message;
+      msgEl.classList.add('show', 'error');
+    }
+  }
+
+  document.getElementById('pwd').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') login();
+  });
+</script>
+
+</body>
+</html>
